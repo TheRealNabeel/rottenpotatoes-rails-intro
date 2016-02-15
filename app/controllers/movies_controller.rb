@@ -15,17 +15,36 @@ class MoviesController < ApplicationController
     @check_box_ratings = @all_ratings
     @movies = Movie.all
     movies_not_sorted = @movies
+    curr_session = {}
+    curr_params = {}
     if params[:ratings]
+      session[:ratings] = params[:ratings]
       @check_box_ratings = params[:ratings].keys
       @movies = Movie.where(:rating => @check_box_ratings)
       movies_not_sorted = @movies
     end
     if params[:sort_by] == "title"
       @title_header = "hilite"
+      session[:sort_by] = "title"
+      session[:sorted_by] = ""
       @movies = movies_not_sorted.order(:title)
-    elsif params[:sort_by] == "release date"
+    elsif params[:sorted_by] == "release date"
       @release_date_header = "hilite"
+      session[:sorted_by] = "release date"
+      session[:sort_by] = ""
       @movies = movies_not_sorted.order(:release_date)
+    end
+    [:ratings, :sort_by, :sorted_by].each do |index|
+      if session[index]
+        curr_session[index] = session[index]
+      end
+      if params[index]
+        curr_params[index] = params[index]
+      end
+    end
+    if curr_session != curr_params
+        flash.keep
+        redirect_to movies_path(curr_session)
     end
   end
 
